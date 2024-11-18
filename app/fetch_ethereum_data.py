@@ -9,7 +9,7 @@ ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 SYMBOL = "ETH"
 MARKET = "USD"
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
-GCS_FOLDER = os.getenv("GCS_FOLDER", "ethereum_data/")
+GCS_FOLDER = os.getenv("GCS_FOLDER", f"{SYMBOL}/")
 
 def upload_to_gcs(bucket_name, destination_blob_name, file_path):
     """
