@@ -6,10 +6,8 @@ from google.cloud import storage
 
 # Load environment variables
 ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
-SYMBOL = "ETH"
 MARKET = "USD"
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
-GCS_FOLDER = os.getenv("GCS_FOLDER", f"{SYMBOL}/")
 
 def upload_to_gcs(bucket_name, destination_blob_name, file_path):
     """
@@ -32,6 +30,16 @@ def upload_to_gcs(bucket_name, destination_blob_name, file_path):
 
 def fetch_and_store_ethereum_data():
     """
+    Execute multiple tickers
+    """
+    tickers = ['BTC', 'ETH', 'USDT', 'SOL', 'BNB', 'DOGE', 'XRP', 'USDC', 'ADA']
+
+    for SYMBOL in tickers:
+        GCS_FOLDER = f"{SYMBOL}/"
+        fetch_and_store_ethereum_execute(SYMBOL, GCS_FOLDER)
+
+def fetch_and_store_ethereum_execute(SYMBOL, GCS_FOLDER):
+    """
     Fetches Ethereum data with a 1-minute interval using the Alpha Vantage Python library,
     and stores it in Google Cloud Storage as a Parquet file.
     """
@@ -40,7 +48,7 @@ def fetch_and_store_ethereum_data():
         crypto = CryptoCurrencies(key=ALPHA_VANTAGE_API_KEY, output_format="pandas")
         
         # Fetch Ethereum data
-        df, _ = crypto.get_digital_currency_intraday(symbol=SYMBOL, market=MARKET)
+        df, _ = crypto.get_crypto_intraday(symbol=SYMBOL, market=MARKET,  interval='1min', outputsize='full')
         
         # Rename columns for clarity
         df = df.rename(
@@ -57,7 +65,7 @@ def fetch_and_store_ethereum_data():
         
         # Generate filename based on the timestamp of the last data point
         last_timestamp = df.index[-1].strftime("%Y%m%d%H%M%S")
-        file_name = f"eth_{last_timestamp}.parquet"
+        file_name = f"{SYMBOL}_1min_{last_timestamp}.parquet"
         local_file_path = f"/tmp/{file_name}"
         gcs_blob_path = f"{GCS_FOLDER}{file_name}"
 
